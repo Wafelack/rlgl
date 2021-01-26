@@ -14,7 +14,8 @@ local links = {
   kotlin={"• [🇺🇸 Fundamental kotlin](http://www.fundamental-kotlin.com/)"},
   lua={"• [🇺🇸 Programming in Lua (PIL)](https://www.lua.org/pil/contents.html)"},
   ocaml={"• [🇫🇷 Cours d'introduction (Good Eris)](https://www.good-eris.net/formation-ocaml/intro.html)", "• [🇺🇸 Cours (Real World Ocaml)](https://v1.realworldocaml.org/v1/en/html/index.html)"},
-  php={"• [🇫🇷 Php the right way](https://eilgin.github.io/php-the-right-way/)", "• [🇺🇸 Php the right way](https://phptherightway.com/)"},
+  php={"• [🇫🇷 Php the right way](https://eilgin.github.io/php-the-right-way/)", "• [🇫🇷 Cours PhP-MySQL (Pierre Giraud)[https://www.pierre-giraud.com/php-mysql-apprendre-coder-cours/]", "• [🇺🇸 Php the right way](https://phptherightway.com/)"},
+  
   python={"• [🇫🇷 Apprendre à programmer avec Python3 (Gérard Swinnen)](https://inforef.be/swi/download/apprendre_python3_5.pdf)", "• [🇺🇸 Cours (GoalKicker)](https://books.goalkicker.com/PythonBook/)"},
   ruby={"• [🇫🇷 Formation Ruby (Grafikart)](https://www.grafikart.fr/formations/ruby)", "• [🇺🇸 Ruby docs](https://ruby-doc.org/)"},
   rust={"• [🇺🇸 The Rust Book (Cours officiel)](https://doc.rust-lang.org/book/)"},
