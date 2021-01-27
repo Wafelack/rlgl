@@ -32,7 +32,7 @@ local function create_embed(lang)
     }
   }
   embed.footer = {
-    text = "Inspired from https://learndev.info"
+    text = PREFIX .. "cours " .. lang .. "• DevBot • Inspired from https://learndev.info"
   }
   embed.color = 0x4444EE
 
@@ -66,11 +66,68 @@ client:on('messageCreate', function(message)
       else
         message:reply("Please specify a language.")
       end
-   
+
+    elseif splited[1] == PREFIX .. 'help' then
+
+      embed = {}
+
+      embed.title = "Aide"
+      embed.description = "• **" .. PREFIX .. "ask**: Affiche la méthode de demande d'aide.\n• **" .. PREFIX .. "code**: Affiche la méthode de mise en forme du code.\n• **" .. PREFIX .. "cours <langage>**: Affiche la liste des cours pour un langage.\n• **".. PREFIX .. "help**: Affiche ce message."
+      embed.footer = {
+        text = PREFIX .. "help • DevBot • Wafelack"
+      }
+      embed.color = 0xFFFF00
+
+      message:reply {
+        embed = embed
+      }
+
     elseif splited[1] == PREFIX .. 'code' then
-      message:reply(
-        table.concat(get_lines("code.txt"), "\n")
-      )
+
+      embed = {}
+      embed.title = "Mettre en forme du code sur discord"
+      embed.description = table.concat(get_lines("code.txt"), "\n")
+      embed.footer = {
+        text = PREFIX .. "code • DevBot • Wafelack"
+      }
+      embed.color = 0x444444
+
+      message:reply{
+        embed = embed
+      }
+
+    elseif splited[1] == PREFIX .. 'ask' then
+      embed = {}
+
+      embed.title = "Comment poser une question ?"
+      embed.description = "Ce message a pour but de vous montrer les meilleurs moyens de poser une question"
+
+      embed.fields = {
+        {
+          name = "Qui s'y connait en #{technologie} ?",
+          value = "Ce genre de messages est contre-productif et n'incite pas les gens à vous aider, poser votre question directement vous apportera plus d'aide.\n\n>> https://dontasktoask.com",
+          inline = false
+        },
+        {
+          name = "Poser une question efficacement",
+          value = "Pour poser une question efficacement, veillez à fournir:\n\n• Votre code\n• Vos potentielles erreurs\n• Le résultat obtenu\n• Le résultat attendu\n• Tout autre chose pouvant permettre de mieux vous aider.",
+          inline = false
+        },
+        {
+          name = "Chercher avant de demander",
+          value = "Un minimum de recherches sur votre problème, sur la doc, google, stackoverflow, etc, est demandé afin de ne pas spammer les canaux de demandes trouvables en premier résultat de google.",
+          inline = false
+        }
+      }
+      embed.footer = {
+        text = PREFIX .. "ask • DevBot • Wafelack"
+      }
+      embed.color = 0xFF8800
+
+      message:reply {
+        embed = embed
+      }
+
     end
 
  end)
