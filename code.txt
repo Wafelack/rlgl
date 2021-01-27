@@ -1,0 +1,10 @@
+Pour mettre en forme du code sur discord, et ainsi améliorer la lisibilité, il suffit d'entourer votre code de backticks ( **`** pouvant être obtenus via AltGr + 7 sur un clavier azerty) et d'ajouter le nom du langage. 
+
+Par exemple, pour un `Hello, World !` en python, je vais faire: 
+\`\`\`python
+print("Hello, World !")
+\`\`\`
+
+Ce qui donnera: ```python
+print("Hello, World !")
+```
