@@ -8,3 +8,5 @@ print("Hello, World !")
 Ce qui donnera: ```python
 print("Hello, World !")
 ```
+
+:warning: Si votre code excède 2000 caractères, n'envoyez pas de fichier, écrivez le plutôt ici: https://paste.artemix.org
