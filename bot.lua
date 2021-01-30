@@ -55,7 +55,6 @@ client:on('ready', function()
 
 client:on('messageCreate', function(message)
    local splited = split(message.content, ' ')
-   
    if splited[1] == PREFIX .. "cours" then
       if splited[2] ~= nil then     
          if links[splited[2]] == nil then
@@ -66,6 +65,35 @@ client:on('messageCreate', function(message)
       else
         message:reply("Please specify a language.")
       end
+
+    elseif splited[1] == PREFIX .. 'presentation' and message.author.id == "723862906755743804" then
+
+      embed = {}
+
+      embed.title = "Salut, je suis **DevBot**"
+      embed.description = "**PRÉFIXE:** `" .. PREFIX .. "`"
+      embed.fields = {
+        {
+           name = "Me trouver",
+           value = "Je suis développé via la bibliothèque [Discordia](https://github.com/SinisterRectus/discordia) et suis disponible sur [GitHub](https://github.com/wafelack/devbot) sous la license MPL-2.0.",
+           inline = false
+        },
+        {
+           name = "Bien démarrer",
+           value = "Pour obtenir la liste de mes commandes, utilisez `" .. PREFIX .. "help`.",
+           inline = false
+        }
+      }
+
+      embed.footer = {
+        text = PREFIX .. "presentation • DevBot • Wafelack"
+      }
+
+      embed.color = 0xFF8800
+
+      message:reply {
+        embed = embed
+      }
 
     elseif splited[1] == PREFIX .. 'help' then
 
