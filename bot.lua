@@ -66,6 +66,21 @@ client:on('messageCreate', function(message)
         message:reply("Please specify a language.")
       end
 
+    elseif splited[1] == PREFIX .. 'tutos' then
+
+      embed = {}
+
+      embed.title = "Les tutos ... une si bonne chose ?"
+      embed.description = "• [Pourquoi les tutos ne t'aident pas](https://practicalprogramming.fr/pourquoi-les-tutos-ne-taident-pas)"
+
+      embed.footer = {
+        text = PREFIX .. 'tutos • DevBot • Wafelack'
+      }
+
+      message:reply {
+        embed = embed
+      }
+
     elseif splited[1] == PREFIX .. 'presentation' and message.author.id == "723862906755743804" then
 
       embed = {}
