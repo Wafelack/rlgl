@@ -139,7 +139,7 @@ client:on('messageCreate', function(message)
         embed = embed
       }
 
-    elseif splited[1] == PREFIX .. 'ask0' then
+    elseif splited[1] == PREFIX .. 'ask' then
 
       if splited[2] == nil then
         message:reply("Missing argument: Usage: ~ask <mention>")
