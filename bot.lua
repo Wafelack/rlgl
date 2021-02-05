@@ -139,7 +139,20 @@ client:on('messageCreate', function(message)
         embed = embed
       }
 
-    elseif splited[1] == PREFIX .. 'ask' then
+    elseif splited[1] == PREFIX .. 'ask0' then
+
+      if splited[2] == nil then
+        message:reply("Missing argument: Usage: ~ask <mention>")
+        return
+      end
+
+      local men = message.mentionedUsers.first
+
+      if men == nil then
+        message:reply("Cannot resolve user")
+        return
+      end
+
       embed = {}
 
       embed.title = "Comment poser une question ?"
@@ -168,6 +181,7 @@ client:on('messageCreate', function(message)
       embed.color = 0xFF8800
 
       message:reply {
+        content = "<@" .. men.id .."> Votre question manque de détails pour qu'on puisse bien vous aider :/ voici quelques conseils pour mieux la poser ^^",
         embed = embed
       }
 
