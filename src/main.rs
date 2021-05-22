@@ -42,8 +42,13 @@ App::new("rlgl")
         .arg(Arg::with_name("command")
              .required(true)
              .index(1)
+             .value_name("COMMAND")
+             .help("The command to run."))
+        .arg(Arg::with_name("arguments")
+             .index(2)
              .multiple(true)
-             .min_values(1))
+             .value_name("ARGUMENTS")
+             .help("The arguments to passe to COMMAND."))
 
     }
 }
@@ -70,9 +75,8 @@ fn get_edit_time(file: String) -> Result<i64> {
 fn try_main() -> Result<()> {
     let matches = gen_app!().get_matches();
 
-    let mut raw_command = matches.values_of("command").unwrap();
-    let command = raw_command.next().unwrap();
-    let args = raw_command.collect::<Vec<&str>>();
+    let command = matches.value_of("command").unwrap();
+    let args = matches.values_of("arguments").and_then(|args| Some(args.collect::<Vec<&str>>())).unwrap_or(vec![]);
     let verbose = matches.is_present("verbose");
     let quiet = matches.is_present("quiet");
     let strict = matches.is_present("strict");
