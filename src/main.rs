@@ -1,7 +1,48 @@
 use nix::unistd::{fork, ForkResult};
-use std::{time::Duration, fs, process::{Command, exit}, io::{stdin, BufRead}, os::unix::fs::MetadataExt};
+use std::{time::{Duration, Instant}, fs, process::{Command, exit}, io::{stdin, BufRead}, os::unix::fs::MetadataExt};
 use clap::{App, Arg};
 use std::thread;
+
+macro_rules! gen_app {
+    () => {
+App::new("rlgl")
+        .about("Play red light, green light with files.")
+        .version(env!("CARGO_PKG_VERSION"))
+        .author(env!("CARGO_PKG_AUTHORS"))
+        .help_message("Print help information.")
+        .version_message("Print version information.")
+        .arg(Arg::with_name("verbose")
+             .short("v")
+             .long("verbose")
+             .help("Display information about what is going on."))
+        .arg(Arg::with_name("strict")
+             .short("s")
+             .long("strict")
+             .help("Exit on the first failed command."))
+        .arg(Arg::with_name("delay")
+             .short("d")
+             .long("delay")
+             .takes_value(true)
+             .help("The delay in seconds between 2 checks. Defaults to 1.0."))
+        .arg(Arg::with_name("ttl")
+             .short("t")
+             .long("ttl")
+             .takes_value(true)
+             .help("THe time to live in seconds before killing the child process. -1 means infinite. Defaults to -1."))
+        .arg(Arg::with_name("quiet")
+             .short("q")
+             .long("quiet")
+             .help("Redirect command output to /dev/null."))
+        .arg(Arg::with_name("command")
+             .required(true)
+             .index(1)
+             .multiple(true)
+             .min_values(1))
+
+    }
+}
+const GREEN_STAR: &str = "\x1b[0;32m*\x1b[0m";
+const RED_STAR: &str = "\x1b[0;31m*\x1b[0m";
 
 #[derive(Debug)]
 pub struct Error(pub String);
@@ -21,18 +62,30 @@ fn get_edit_time(file: String) -> Result<i64>{
 }
 
 fn try_main() -> Result<()>{
-    let matches = App::new("rlgl")
-                    .about("Play red light, green light with files.")
-                    .version(env!("CARGO_PKG_VERSION"))
-                    .arg(Arg::with_name("command")
-                         .required(true)
-                         .index(1)
-                         .multiple(true)
-                         .min_values(1))
-                    .get_matches();
+    let matches = gen_app!().get_matches();
+
     let mut raw_command = matches.values_of("command").unwrap();
     let command = raw_command.next().unwrap();
     let args = raw_command.collect::<Vec<&str>>();
+    let verbose = matches.is_present("verbose");
+    let quiet = matches.is_present("quiet");
+    let strict = matches.is_present("strict");
+    let ttl = match matches.value_of("ttl") {
+        Some(v) => match v.parse::<i32>() {
+            Ok(v) => if v < 0 {
+                None
+            } else {
+                Some(v)
+            }
+            Err(_) => None,
+
+        }
+        None => None,
+    };
+    let delay = match matches.value_of("delay") {
+        Some(v) => v.parse::<f32>().unwrap_or(1.0),
+        None => 1.0,
+    };
 
     let files = stdin().lock().lines().map(|l| match l {
         Ok(l) => Ok(l),
@@ -41,12 +94,19 @@ fn try_main() -> Result<()>{
     let mut edit_dates = files.iter().map(|f| {
         get_edit_time(f.to_string())
     }).collect::<Result<Vec<i64>>>()?;
-
+    
     match fork() {
         Ok(ForkResult::Parent { .. }) => Ok(()),
         Ok(ForkResult::Child) => {
+            let start = Instant::now();
             loop { 
-                thread::sleep(Duration::from_secs(1));
+                match ttl {
+                    Some(ttl) => if start.elapsed().as_secs() > ttl as u64 {
+                        return Ok(());
+                    }
+                    None => {}
+                }
+                thread::sleep(Duration::from_secs_f32(delay));
                 let new_edits = files.iter().map(|f| {
                     get_edit_time(f.to_string())
                 }).collect::<Result<Vec<i64>>>()?;
@@ -56,16 +116,34 @@ fn try_main() -> Result<()>{
                     let fname = &files[idx];
 
                     if *new > prev {
-                        println!("\x1b[0;32m*\x1b[0m A file has changed: {}.", fname);
-                        let status = match Command::new(command)
-                                .args(&args)
-                                .status() {
-                                    Ok(s) => s,
-                                    Err(e) => return error!("Failed to run command: {}.", e),
-                                };
+                        if verbose {
+                            println!("{} rlgl: `{}` has changed.", GREEN_STAR, fname);
+                        }
+                        let (status, stdout) = match Command::new(command)
+                            .args(&args)
+                            .output() {
+                                Ok(s) => (s.status, s.stdout),
+                                Err(e) => {
+                                    if verbose {
+                                        eprintln!("{} rlgl: `{}`: {}.", RED_STAR, format!("{} {}", command, args.join(" ")), e);
+                                    }
+                                    if strict {
+                                        return error!("Failed to execute `{}`: {}.", format!("{} {}", command, args.join(" ")), e);
+                                    } else {
+                                        continue;
+                                    }
+                                }
+                            };
+                        if !quiet {
+                            println!("{}", String::from_utf8_lossy(&stdout).trim());
+                        }
                         if !status.success() {
-                            println!("Command failed, exit code: {}.", status.code().unwrap_or(1));
-                            // Check if we need to exit the program with the strict flag.
+                            if verbose {
+                                eprintln!("{} rlgl: `{}` failed, exit code: {}.", RED_STAR, format!("{} {}", command, args.join(" " )), status.code().unwrap_or(1));
+                            }
+                            if strict {
+                                return error!("`{}` execution failed. Aborting due to `--strict`.", format!("{} {}", command, args.join(" ")));
+                            }
                         }
                         break;
                     }
@@ -83,7 +161,7 @@ fn main() {
     match try_main() {
         Ok(()) => {}
         Err(e) => {
-            eprintln!("rlgl: {}", e.0);
+            eprintln!("{} rlgl: {}", RED_STAR, e.0);
             exit(1);
         }
     }
