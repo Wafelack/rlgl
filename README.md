@@ -18,7 +18,7 @@ $ cargo install --path rlgl/
 Usage
 -----
 
-rlgl reads a file list on the standard input and take a command to run as argument.
+rlgl reads a files list on the standard input and takes a command to run as argument.
 
 Read `rlgl --help` for more information about possible flags.
 
