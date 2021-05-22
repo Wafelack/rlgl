@@ -30,3 +30,11 @@ Recompile your project each time a file is edited:
 ```bash
 $ find -name *.rs | rlgl -qs cargo build
 ```
+
+Link your dotfiles when they are edited (with [`rdfm`](https://github.com/wafelack/rdfm)):
+```bash
+$ sed '/^#/d' ~/.config/.dotfiles/dotfiles.rdfm \ # Remove comments from dotfiles.rdfm
+  | sed -r '/^\s*$/d' \ # Remove blank lines
+  | awk -F'=' '{ print $1 }' \ # Split on '=' and take the first part.
+  | rlgl -qs rdfm link
+```
