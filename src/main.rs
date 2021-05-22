@@ -115,7 +115,12 @@ fn try_main() -> Result<()> {
         .collect::<Result<Vec<i64>>>()?;
 
     match fork() {
-        Ok(ForkResult::Parent { .. }) => Ok(()),
+        Ok(ForkResult::Parent { child }) => {
+            if verbose {
+                println!("{} rlgl: Child PID {}.", GREEN_STAR, child)
+            }
+            Ok(())
+        },
         Ok(ForkResult::Child) => {
             let start = Instant::now();
             loop {
