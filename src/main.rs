@@ -11,44 +11,44 @@ use std::{
 
 macro_rules! gen_app {
     () => {
-App::new("rlgl")
-        .about("Play red light, green light with files.")
-        .version(env!("CARGO_PKG_VERSION"))
-        .author(env!("CARGO_PKG_AUTHORS"))
-        .help_message("Print help information.")
-        .version_message("Print version information.")
-        .arg(Arg::with_name("verbose")
-             .short("v")
-             .long("verbose")
-             .help("Display information about what is going on."))
-        .arg(Arg::with_name("strict")
-             .short("s")
-             .long("strict")
-             .help("Exit on the first failed command."))
-        .arg(Arg::with_name("delay")
-             .short("d")
-             .long("delay")
-             .takes_value(true)
-             .help("The delay in seconds between 2 checks. Defaults to 1.0."))
-        .arg(Arg::with_name("ttl")
-             .short("t")
-             .long("ttl")
-             .takes_value(true)
-             .help("The time to live in seconds before killing the child process. -1 means infinite. Defaults to -1."))
-        .arg(Arg::with_name("quiet")
-             .short("q")
-             .long("quiet")
-             .help("Redirect command output to /dev/null."))
-        .arg(Arg::with_name("command")
-             .required(true)
-             .index(1)
-             .value_name("COMMAND")
-             .help("The command to run."))
-        .arg(Arg::with_name("arguments")
-             .index(2)
-             .multiple(true)
-             .value_name("ARGUMENTS")
-             .help("The arguments to passe to COMMAND."))
+        App::new("rlgl")
+            .about("Play red light, green light with files.")
+            .version(env!("CARGO_PKG_VERSION"))
+            .author(env!("CARGO_PKG_AUTHORS"))
+            .help_message("Print help information.")
+            .version_message("Print version information.")
+            .arg(Arg::with_name("verbose")
+                 .short("v")
+                 .long("verbose")
+                 .help("Display information about what is going on."))
+            .arg(Arg::with_name("strict")
+                 .short("s")
+                 .long("strict")
+                 .help("Exit on the first failed command."))
+            .arg(Arg::with_name("delay")
+                 .short("d")
+                 .long("delay")
+                 .takes_value(true)
+                 .help("The delay in seconds between 2 checks. Defaults to 1.0."))
+            .arg(Arg::with_name("ttl")
+                 .short("t")
+                 .long("ttl")
+                 .takes_value(true)
+                 .help("The time to live in seconds before killing the child process. -1 means infinite. Defaults to -1."))
+            .arg(Arg::with_name("quiet")
+                 .short("q")
+                 .long("quiet")
+                 .help("Redirect command output to /dev/null."))
+            .arg(Arg::with_name("command")
+                 .required(true)
+                 .index(1)
+                 .value_name("COMMAND")
+                 .help("The command to run."))
+            .arg(Arg::with_name("arguments")
+                 .index(2)
+                 .multiple(true)
+                 .value_name("ARGUMENTS")
+                 .help("The arguments to passe to COMMAND."))
 
     }
 }
@@ -102,10 +102,10 @@ fn try_main() -> Result<()> {
         .lock()
         .lines()
         .map(|l| match l {
-            Ok(l) => Ok(l),
+            Ok(l) => Ok(l.trim().to_string()),
             Err(_) => error!("Failed to read file name from standard input."),
         })
-        .collect::<Result<Vec<_>>>()?
+    .collect::<Result<Vec<_>>>()?
         .into_iter()
         .filter(|f| !f.is_empty())
         .collect::<Vec<_>>();
@@ -116,9 +116,7 @@ fn try_main() -> Result<()> {
 
     match fork() {
         Ok(ForkResult::Parent { child }) => {
-            if verbose {
-                println!("{} rlgl: Child PID {}.", GREEN_STAR, child)
-            }
+            println!("{} rlgl: Child PID {}.", GREEN_STAR, child);
             Ok(())
         },
         Ok(ForkResult::Child) => {
@@ -155,14 +153,14 @@ fn try_main() -> Result<()> {
                                         RED_STAR,
                                         format!("{} {}", command, args.join(" ")),
                                         e
-                                    );
+                                        );
                                 }
                                 if strict {
                                     return error!(
                                         "Failed to execute `{}`: {}.",
                                         format!("{} {}", command, args.join(" ")),
                                         e
-                                    );
+                                        );
                                 } else {
                                     continue;
                                 }
@@ -178,13 +176,13 @@ fn try_main() -> Result<()> {
                                     RED_STAR,
                                     format!("{} {}", command, args.join(" ")),
                                     status.code().unwrap_or(1)
-                                );
+                                    );
                             }
                             if strict {
                                 return error!(
                                     "`{}` execution failed. Aborting due to `--strict`.",
                                     format!("{} {}", command, args.join(" "))
-                                );
+                                    );
                             }
                         }
                         break;
