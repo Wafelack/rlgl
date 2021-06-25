@@ -12,7 +12,9 @@ You will need to have `git` and `cargo` installed to install rlgl.
 
 ```bash
 $ git clone https://github.com/wafelack/rlgl.git
-$ cargo install --path rlgl/
+$ cd rlgl/
+$ make
+$ make install [PREFIX=/wherever/you/want]
 ```
 
 Usage
