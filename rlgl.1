@@ -1,0 +1,61 @@
+.TH RLGL 1 2021-06-25 Miniutils "User Commands"
+
+.SH NAME
+rlgl \- play red light green light with files
+
+.SH SYNOPSIS
+.B rlgl
+[\fIOPTION\fR]
+.I COMMAND
+[\fIARG\fR]...
+
+.SH DESCRIPTION
+Play red light green light with files - Detect when files changes.
+
+This programs reads a list of FILE(s) on the standard input and executes an arbitrary COMMAND with the given ARG(s) when files change.
+.br
+Unless a delay is specified with \fB--delay\fR, the files are scanned for changes every second, by checking if their \fImtime\fR changed. 
+.br 
+The program waits for the command to finish before rescanning.
+
+.SH OPTIONS
+\fB-q\fR. \fB--quiet\fR         Do not display command output.
+
+\fB-s\fR, \fB--strict\fR        Exit on the first failed command.
+
+\fB-v\fR, \fB--verbose\fR       Display information about what is going on.
+
+\fB-d\fR, \fB--delay\fR DELAY   The delay in seconds between 2 checks. Default to 1.0.
+
+\fB-t\fR, \fB--ttl\fR TTL       
+                    The time to live (in seconds) before killing the process.
+                    -1 means infinity
+
+\fB-h\fR, \fB--help\fR          Display help and exit.
+
+\fB-V\fR, \fB--version\fR       Display version information and exit.
+
+.SH EXAMPLES
+Recompile when a C source file changes.
+.br
+$ find ./ -name '*.c' | rlgl -q -s make
+
+.SH SEE ALSO
+\fBstat\fR(2),\fBsh\fR(1)
+
+.SH AUTHOR
+Written by Wafelack.
+
+.SH REPORTING BUGS
+Please report any bug to the rlgl repository issues page:
+.br
+    <https://github.com/miniutils/rlgl/issues/new>.
+
+.SH COPYRIGHT
+Copyright (C) 2021 Miniutils.
+.br
+License GPLv3: GNU General Public License version 3.0.
+.br
+This is free software: you are free to change and redistribute it.
+.br
+There is NO WARRANTY, to the extent permitted by law.

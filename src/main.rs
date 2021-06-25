@@ -18,7 +18,7 @@ struct Rlgl {
     strict: bool,
     #[structopt(short, long, default_value = "1.0", help = "The delay in seconds between 2 checks.")]
     delay: f32,
-    #[structopt(short, long, default_value = "-1", help = "The time to live (in seconds) before killing the process.")]
+    #[structopt(short, long, default_value = "-1", help = "The time to live (in seconds) before killing the process. -1 means infinity.")]
     ttl: i32,
     #[structopt(short, long, help = "Do not display command output.")]
     quiet: bool,
