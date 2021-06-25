@@ -13,4 +13,4 @@ categories = ["command-line-utilities", "filesystem", ""]
 
 [dependencies]
 nix = "0.13.0"
-clap = "2.33.3"
+structopt = "0.3.21"

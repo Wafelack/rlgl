@@ -1,4 +1,4 @@
-use clap::{App, Arg};
+use structopt::StructOpt;
 use nix::unistd::{fork, ForkResult};
 use std::thread;
 use std::{
@@ -9,49 +9,25 @@ use std::{
     time::{Duration, Instant},
 };
 
-macro_rules! gen_app {
-    () => {
-        App::new("rlgl")
-            .about("Play red light, green light with files.")
-            .version(env!("CARGO_PKG_VERSION"))
-            .author(env!("CARGO_PKG_AUTHORS"))
-            .help_message("Print help information.")
-            .version_message("Print version information.")
-            .arg(Arg::with_name("verbose")
-                 .short("v")
-                 .long("verbose")
-                 .help("Display information about what is going on."))
-            .arg(Arg::with_name("strict")
-                 .short("s")
-                 .long("strict")
-                 .help("Exit on the first failed command."))
-            .arg(Arg::with_name("delay")
-                 .short("d")
-                 .long("delay")
-                 .takes_value(true)
-                 .help("The delay in seconds between 2 checks. Defaults to 1.0."))
-            .arg(Arg::with_name("ttl")
-                 .short("t")
-                 .long("ttl")
-                 .takes_value(true)
-                 .help("The time to live in seconds before killing the child process. -1 means infinite. Defaults to -1."))
-            .arg(Arg::with_name("quiet")
-                 .short("q")
-                 .long("quiet")
-                 .help("Redirect command output to /dev/null."))
-            .arg(Arg::with_name("command")
-                 .required(true)
-                 .index(1)
-                 .value_name("COMMAND")
-                 .help("The command to run."))
-            .arg(Arg::with_name("arguments")
-                 .index(2)
-                 .multiple(true)
-                 .value_name("ARGUMENTS")
-                 .help("The arguments to passe to COMMAND."))
-
-    }
+#[derive(StructOpt)]
+#[structopt(name = "rlgl", about = "Play red light, green light with files.", help_message = "Print help information.", version_message = "Print version information.")]
+struct Rlgl {
+    #[structopt(short, long, help = "Display information about what is going on.")]
+    verbose: bool,
+    #[structopt(short, long, help = "Exit on the first failed command.")]
+    strict: bool,
+    #[structopt(short, long, default_value = "1.0", help = "The delay in seconds between 2 checks.")]
+    delay: f32,
+    #[structopt(short, long, default_value = "-1", help = "The time to live (in seconds) before killing the process.")]
+    ttl: i32,
+    #[structopt(short, long, help = "Do not display command output.")]
+    quiet: bool,
+    #[structopt(value_name = "COMMAND", help = "The command to run when a file changes.")]
+    command: String,
+    #[structopt(value_name = "ARGS", multiple = true, help = "The arguments to give to the COMMAND.")]
+    args: Vec<String>,
 }
+
 const GREEN_STAR: &str = "\x1b[0;32m*\x1b[0m";
 const RED_STAR: &str = "\x1b[0;31m*\x1b[0m";
 
@@ -73,30 +49,9 @@ fn get_edit_time(file: String) -> Result<i64> {
 }
 
 fn try_main() -> Result<()> {
-    let matches = gen_app!().get_matches();
+    let args = Rlgl::from_args();
 
-    let command = matches.value_of("command").unwrap();
-    let args = matches.values_of("arguments").and_then(|args| Some(args.collect::<Vec<&str>>())).unwrap_or(vec![]);
-    let verbose = matches.is_present("verbose");
-    let quiet = matches.is_present("quiet");
-    let strict = matches.is_present("strict");
-    let ttl = match matches.value_of("ttl") {
-        Some(v) => match v.parse::<i32>() {
-            Ok(v) => {
-                if v < 0 {
-                    None
-                } else {
-                    Some(v)
-                }
-            }
-            Err(_) => None,
-        },
-        None => None,
-    };
-    let delay = match matches.value_of("delay") {
-        Some(v) => v.parse::<f32>().unwrap_or(1.0),
-        None => 1.0,
-    };
+    let ttl = if args.ttl < 0 { None } else { Some(args.ttl) };
 
     let files = stdin()
         .lock()
@@ -130,7 +85,7 @@ fn try_main() -> Result<()> {
                     }
                     None => {}
                 }
-                thread::sleep(Duration::from_secs_f32(delay));
+                thread::sleep(Duration::from_secs_f32(args.delay));
                 let new_edits = files
                     .iter()
                     .map(|f| get_edit_time(f.to_string()))
@@ -141,24 +96,24 @@ fn try_main() -> Result<()> {
                     let fname = &files[idx];
 
                     if *new > prev {
-                        if verbose {
+                        if args.verbose {
                             println!("{} rlgl: `{}` has changed.", GREEN_STAR, fname);
                         }
-                        let (status, stdout) = match Command::new(command).args(&args).output() {
+                        let (status, stdout) = match Command::new(&args.command).args(&args.args).output() {
                             Ok(s) => (s.status, s.stdout),
                             Err(e) => {
-                                if verbose {
+                                if args.verbose {
                                     eprintln!(
                                         "{} rlgl: `{}`: {}.",
                                         RED_STAR,
-                                        format!("{} {}", command, args.join(" ")),
+                                        format!("{} {}", args.command, args.args.join(" ")),
                                         e
                                         );
                                 }
-                                if strict {
+                                if args.strict {
                                     return error!(
                                         "Failed to execute `{}`: {}.",
-                                        format!("{} {}", command, args.join(" ")),
+                                        format!("{} {}", args.command, args.args.join(" ")),
                                         e
                                         );
                                 } else {
@@ -166,22 +121,22 @@ fn try_main() -> Result<()> {
                                 }
                             }
                         };
-                        if !quiet {
+                        if !args.quiet {
                             println!("{}", String::from_utf8_lossy(&stdout).trim());
                         }
                         if !status.success() {
-                            if verbose {
+                            if args.verbose {
                                 eprintln!(
                                     "{} rlgl: `{}` failed, exit code: {}.",
                                     RED_STAR,
-                                    format!("{} {}", command, args.join(" ")),
+                                    format!("{} {}", args.command, args.args.join(" ")),
                                     status.code().unwrap_or(1)
                                     );
                             }
-                            if strict {
+                            if args.strict {
                                 return error!(
                                     "`{}` execution failed. Aborting due to `--strict`.",
-                                    format!("{} {}", command, args.join(" "))
+                                    format!("{} {}", args.command, args.args.join(" "))
                                     );
                             }
                         }
